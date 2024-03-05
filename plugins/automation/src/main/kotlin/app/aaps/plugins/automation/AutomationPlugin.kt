@@ -35,6 +35,7 @@ import app.aaps.plugins.automation.actions.ActionCarePortalEvent
 import app.aaps.plugins.automation.actions.ActionNotification
 import app.aaps.plugins.automation.actions.ActionProfileSwitch
 import app.aaps.plugins.automation.actions.ActionProfileSwitchPercent
+import app.aaps.plugins.automation.actions.ActionStopProfilePercent
 import app.aaps.plugins.automation.actions.ActionAutoisfDisable
 import app.aaps.plugins.automation.actions.ActionAutoisfEnable
 import app.aaps.plugins.automation.actions.ActionSetAcceWeight
@@ -63,6 +64,7 @@ import app.aaps.plugins.automation.triggers.TriggerHeartRate
 import app.aaps.plugins.automation.triggers.TriggerIob
 import app.aaps.plugins.automation.triggers.TriggerIobTH
 import app.aaps.plugins.automation.triggers.TriggerLocation
+import app.aaps.plugins.automation.triggers.TriggerProfile
 import app.aaps.plugins.automation.triggers.TriggerProfilePercent
 import app.aaps.plugins.automation.triggers.TriggerPumpLastConnection
 import app.aaps.plugins.automation.triggers.TriggerRecurringTime
@@ -380,6 +382,7 @@ class AutomationPlugin @Inject constructor(
             ActionAlarm(injector),
             ActionCarePortalEvent(injector),
             ActionProfileSwitchPercent(injector),
+            ActionStopProfilePercent(injector),
             ActionProfileSwitch(injector),
             ActionAutoisfEnable(injector),
             ActionAutoisfDisable(injector),
@@ -403,6 +406,7 @@ class AutomationPlugin @Inject constructor(
             TriggerIob(injector),
             TriggerCOB(injector),
             TriggerProfilePercent(injector),
+            TriggerProfile(injector),
             TriggerTempTarget(injector),
             TriggerTempTargetValue(injector),
             TriggerWifiSsid(injector),

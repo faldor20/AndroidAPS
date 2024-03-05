@@ -15,6 +15,7 @@ import app.aaps.plugins.automation.actions.ActionLoopSuspend
 import app.aaps.plugins.automation.actions.ActionNotification
 import app.aaps.plugins.automation.actions.ActionProfileSwitch
 import app.aaps.plugins.automation.actions.ActionProfileSwitchPercent
+import app.aaps.plugins.automation.actions.ActionStopProfilePercent
 import app.aaps.plugins.automation.actions.ActionAutoisfEnable
 import app.aaps.plugins.automation.actions.ActionAutoisfDisable
 import app.aaps.plugins.automation.actions.ActionSetAcceWeight
@@ -46,6 +47,7 @@ import app.aaps.plugins.automation.triggers.TriggerIob
 import app.aaps.plugins.automation.triggers.TriggerIobTH
 import app.aaps.plugins.automation.triggers.TriggerLocation
 import app.aaps.plugins.automation.triggers.TriggerProfilePercent
+import app.aaps.plugins.automation.triggers.TriggerProfile
 import app.aaps.plugins.automation.triggers.TriggerPumpLastConnection
 import app.aaps.plugins.automation.triggers.TriggerRecurringTime
 import app.aaps.plugins.automation.triggers.TriggerTempTarget
@@ -88,6 +90,7 @@ abstract class AutomationModule {
     @ContributesAndroidInjector abstract fun triggerIobTHInjector(): TriggerIobTH
     @ContributesAndroidInjector abstract fun triggerLocationInjector(): TriggerLocation
     @ContributesAndroidInjector abstract fun triggerProfilePercentInjector(): TriggerProfilePercent
+    @ContributesAndroidInjector abstract fun triggerProfileInjector(): TriggerProfile
     @ContributesAndroidInjector abstract fun triggerPumpLastConnectionInjector(): TriggerPumpLastConnection
     @ContributesAndroidInjector abstract fun triggerBTDeviceInjector(): TriggerBTDevice
     @ContributesAndroidInjector abstract fun triggerRecurringTimeInjector(): TriggerRecurringTime
@@ -108,6 +111,7 @@ abstract class AutomationModule {
     @ContributesAndroidInjector abstract fun actionCarePortalEventInjector(): ActionCarePortalEvent
     @ContributesAndroidInjector abstract fun actionProfileSwitchInjector(): ActionProfileSwitch
     @ContributesAndroidInjector abstract fun actionProfileSwitchPercentInjector(): ActionProfileSwitchPercent
+    @ContributesAndroidInjector abstract fun actionStopProfilePercentInjector(): ActionStopProfilePercent
     @ContributesAndroidInjector abstract fun actionRunAutotuneInjector(): ActionRunAutotune
     @ContributesAndroidInjector abstract fun actionAutoisfEnableInjector(): ActionAutoisfEnable
     @ContributesAndroidInjector abstract fun actionAutoisfDisableInjector(): ActionAutoisfDisable
