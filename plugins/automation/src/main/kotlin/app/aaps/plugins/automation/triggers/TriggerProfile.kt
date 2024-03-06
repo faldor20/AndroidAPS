@@ -56,7 +56,7 @@ class TriggerProfile(injector: HasAndroidInjector) : Trigger(injector) {
     override fun friendlyName(): Int = R.string.profilecheck
 
     override fun friendlyDescription(): String =
-        "${R.string.profilecheck}: ${profileName.value}"
+        "${rh.gs(R.string.profilecheck)}: ${profileName.value}"
 
     override fun icon(): Optional<Int> = Optional.of(app.aaps.core.ui.R.drawable.ic_actions_profileswitch)
 
