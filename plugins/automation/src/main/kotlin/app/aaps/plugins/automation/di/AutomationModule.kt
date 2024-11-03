@@ -22,6 +22,7 @@ import app.aaps.plugins.automation.actions.ActionSetAcceWeight
 import app.aaps.plugins.automation.actions.ActionSetIobTH
 import app.aaps.plugins.automation.actions.ActionRunAutotune
 import app.aaps.plugins.automation.actions.ActionSendSMS
+import app.aaps.plugins.automation.actions.ActionSetAutomationState
 import app.aaps.plugins.automation.actions.ActionStartTempTarget
 import app.aaps.plugins.automation.actions.ActionStopProcessing
 import app.aaps.plugins.automation.actions.ActionStopTempTarget
@@ -33,6 +34,7 @@ import app.aaps.plugins.automation.dialogs.EditEventDialog
 import app.aaps.plugins.automation.dialogs.EditTriggerDialog
 import app.aaps.plugins.automation.services.LocationService
 import app.aaps.plugins.automation.triggers.Trigger
+import app.aaps.plugins.automation.triggers.TriggerAutomationState
 import app.aaps.plugins.automation.triggers.TriggerAutosensValue
 import app.aaps.plugins.automation.triggers.TriggerBTDevice
 import app.aaps.plugins.automation.triggers.TriggerBg
@@ -91,6 +93,7 @@ abstract class AutomationModule {
     @ContributesAndroidInjector abstract fun triggerLocationInjector(): TriggerLocation
     @ContributesAndroidInjector abstract fun triggerProfilePercentInjector(): TriggerProfilePercent
     @ContributesAndroidInjector abstract fun triggerProfileInjector(): TriggerProfile
+    @ContributesAndroidInjector abstract fun triggerAutomationState(): TriggerAutomationState
     @ContributesAndroidInjector abstract fun triggerPumpLastConnectionInjector(): TriggerPumpLastConnection
     @ContributesAndroidInjector abstract fun triggerBTDeviceInjector(): TriggerBTDevice
     @ContributesAndroidInjector abstract fun triggerRecurringTimeInjector(): TriggerRecurringTime
@@ -112,6 +115,7 @@ abstract class AutomationModule {
     @ContributesAndroidInjector abstract fun actionProfileSwitchInjector(): ActionProfileSwitch
     @ContributesAndroidInjector abstract fun actionProfileSwitchPercentInjector(): ActionProfileSwitchPercent
     @ContributesAndroidInjector abstract fun actionStopProfilePercentInjector(): ActionStopProfilePercent
+    @ContributesAndroidInjector abstract fun actionSetAutomationStateInjector(): ActionSetAutomationState
     @ContributesAndroidInjector abstract fun actionRunAutotuneInjector(): ActionRunAutotune
     @ContributesAndroidInjector abstract fun actionAutoisfEnableInjector(): ActionAutoisfEnable
     @ContributesAndroidInjector abstract fun actionAutoisfDisableInjector(): ActionAutoisfDisable

@@ -55,6 +55,7 @@ abstract class Action(val injector: HasAndroidInjector) {
             if (dotIndex > 0) type = type.substring(dotIndex + 1)
             return when (type) {
                 ActionAlarm::class.java.simpleName                -> ActionAlarm(injector).fromJSON(data.toString())
+
                 ActionCarePortalEvent::class.java.simpleName      -> ActionCarePortalEvent(injector).fromJSON(data.toString())
                 ActionDummy::class.java.simpleName                -> ActionDummy(injector).fromJSON(data.toString())
                 ActionLoopDisable::class.java.simpleName          -> ActionLoopDisable(injector).fromJSON(data.toString())
@@ -73,6 +74,7 @@ abstract class Action(val injector: HasAndroidInjector) {
                 ActionSendSMS::class.java.simpleName              -> ActionSendSMS(injector).fromJSON(data.toString())
                 ActionStartTempTarget::class.java.simpleName      -> ActionStartTempTarget(injector).fromJSON(data.toString())
                 ActionStopTempTarget::class.java.simpleName       -> ActionStopTempTarget(injector).fromJSON(data.toString())
+                ActionSetAutomationState::class.java.simpleName   -> ActionSetAutomationState(injector).fromJSON(data.toString())
                 else                                              -> throw ClassNotFoundException(type)
             }
         } catch (e: ClassNotFoundException) {

@@ -24,6 +24,7 @@ import app.aaps.plugins.automation.dialogs.ChooseTriggerDialog
 import app.aaps.plugins.automation.events.EventTriggerChanged
 import app.aaps.plugins.automation.events.EventTriggerClone
 import app.aaps.plugins.automation.events.EventTriggerRemove
+import app.aaps.plugins.automation.services.AutomationStateService
 import app.aaps.plugins.automation.services.LastLocationDataContainer
 import dagger.android.HasAndroidInjector
 import org.json.JSONObject
@@ -44,6 +45,7 @@ abstract class Trigger(val injector: HasAndroidInjector) {
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var glucoseStatusProvider: GlucoseStatusProvider
     @Inject lateinit var dateUtil: DateUtil
+    @Inject lateinit var automationStateService: AutomationStateService
 
     init {
         @Suppress("LeakingThis")
@@ -103,6 +105,7 @@ abstract class Trigger(val injector: HasAndroidInjector) {
                 TriggerLocation::class.java.simpleName           -> TriggerLocation(injector).fromJSON(data.toString())
                 TriggerProfilePercent::class.java.simpleName     -> TriggerProfilePercent(injector).fromJSON(data.toString())
                 TriggerProfile::class.java.simpleName            -> TriggerProfile(injector).fromJSON(data.toString())
+                TriggerAutomationState::class.java.simpleName            -> TriggerAutomationState(injector).fromJSON(data.toString())
                 TriggerPumpLastConnection::class.java.simpleName -> TriggerPumpLastConnection(injector).fromJSON(data.toString())
                 TriggerRecurringTime::class.java.simpleName      -> TriggerRecurringTime(injector).fromJSON(data.toString())
                 TriggerTempTarget::class.java.simpleName         -> TriggerTempTarget(injector).fromJSON(data.toString())

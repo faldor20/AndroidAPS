@@ -142,4 +142,13 @@
     <string name="disableautoisf">Disable glucose ISF weights(autoISF)</string>
     <string name="enableautoisf">Enable glucose ISF weights(autoISF)</string>
 
+
+    <string name="set_state">Set automation state</string>
+    <string name="set_state_description">Set automation state %1$s=%2$s</string>
+    <string name="set_state_state_name">"State name: "</string>
+    <string name="set_state_state_val">"State value: "</string>
+    <string name="check_state_name">Check automation state</string>
+    <string name="check_state_description">Check automation state %1$s=%2$s</string>
+
+
 </resources>
