@@ -32,7 +32,6 @@ dependencies {
     api(libs.androidx.room)
     api(libs.androidx.room.runtime)
     api(libs.androidx.room.rxjava3)
-    api(libs.com.github.guepardoapps.kulid)
 
     androidTestImplementation(project(":shared:tests"))
     testImplementation(project(":shared:tests"))
