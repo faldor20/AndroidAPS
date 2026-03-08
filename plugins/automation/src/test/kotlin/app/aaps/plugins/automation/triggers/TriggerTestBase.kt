@@ -1,6 +1,7 @@
 package app.aaps.plugins.automation.triggers
 
 import app.aaps.core.interfaces.aps.AutosensDataStore
+import app.aaps.core.interfaces.automation.AutomationStateInterface
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.receivers.ReceiverStatusStore
 import app.aaps.plugins.automation.AutomationPlugin
@@ -17,6 +18,7 @@ open class TriggerTestBase : TestBaseWithProfile() {
     @Mock lateinit var automationPlugin: AutomationPlugin
     @Mock lateinit var receiverStatusStore: ReceiverStatusStore
     @Mock lateinit var persistenceLayer: PersistenceLayer
+    @Mock lateinit var automationStateService: AutomationStateInterface
 
     @BeforeEach
     fun prepareMock1() {
@@ -57,6 +59,9 @@ open class TriggerTestBase : TestBaseWithProfile() {
             }
             if (it is TriggerWifiSsid) {
                 it.receiverStatusStore = receiverStatusStore
+            }
+            if (it is TriggerAutomationState) {
+                it.automationStateService = automationStateService
             }
         }
     }

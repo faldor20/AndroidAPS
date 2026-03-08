@@ -17,4 +17,10 @@
     <string name="automation_state_last_value_cannot_be_deleted">Cannot delete the last state value</string>
     <string name="delete_state">Delete State</string>
     <string name="delete_state_confirmation">Are you sure you want to delete this state?</string>
+    <string name="automation_state_no_states">No automation states defined yet. Use the \"Set automation state\" action in your automation rules to create states.</string>
+    <string name="automation_state_add_short">ADD</string>
+    <string name="automation_state_delete_short">DEL</string>
+    <string name="automation_state_set_state_name_hint">State name: </string>
+    <string name="automation_state_already_exists">State "%1$s" already exists</string>
+    <string name="automation_state_value_already_exists">Value "%1$s" already exists</string>
 </resources> 

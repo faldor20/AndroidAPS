@@ -6,6 +6,17 @@ package app.aaps.core.interfaces.automation
  */
 interface AutomationStateInterface {
     /**
+     * Get the current value of a state, or null if not set.
+     * @param stateName The name of the state
+     */
+    fun getStateOrNull(stateName: String): String?
+
+    /**
+     * Get all defined state names, including states without current value.
+     */
+    fun getDefinedStates(): List<String>
+
+    /**
      * Check if a state has a specific value
      * @param stateName The name of the state to check
      * @param state The value to check for
@@ -17,15 +28,16 @@ interface AutomationStateInterface {
      * Set a state to a specific value
      * @param stateName The name of the state to set
      * @param state The value to set
+     * @throws IllegalArgumentException if state name or value are blank
      * @throws IllegalStateException if the state doesn't exist
      * @throws IllegalStateException if the value is not valid for the state
      */
     fun setState(stateName: String, state: String)
 
     /**
-     * Get current value of a specific state
+     * Get current value of a specific state.
+     * Returns an empty string when no current value exists.
      * @param stateName The name of the state
-     * @throws IllegalStateException if the state doesn't exist
      */
     fun getState(stateName: String): String
 

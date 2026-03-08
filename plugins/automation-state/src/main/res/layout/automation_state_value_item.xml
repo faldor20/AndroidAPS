@@ -24,7 +24,7 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:background="@color/buttonBackground"
-        android:contentDescription="@string/delete_short"
+        android:contentDescription="@string/automation_state_delete_short"
         android:padding="4dp"
         android:src="@android:drawable/ic_delete" />
 

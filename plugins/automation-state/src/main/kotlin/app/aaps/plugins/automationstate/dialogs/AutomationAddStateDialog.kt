@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.ui.toast.ToastUtils
 import app.aaps.plugins.automationstate.R
@@ -14,6 +15,7 @@ import javax.inject.Inject
 
 class AutomationAddStateDialog : DaggerDialogFragment() {
 
+    @Inject lateinit var aapsLogger: AAPSLogger
     @Inject lateinit var automationStateService: AutomationStateService
     @Inject lateinit var rh: ResourceHelper
 
@@ -34,13 +36,19 @@ class AutomationAddStateDialog : DaggerDialogFragment() {
                 ToastUtils.showToastInUiThread(context, rh.gs(R.string.automation_state_missing_name_value))
                 return@setOnClickListener
             }
+            if (automationStateService.hasStateValues(stateName)) {
+                ToastUtils.showToastInUiThread(context, rh.gs(R.string.automation_state_already_exists, stateName))
+                return@setOnClickListener
+            }
 
-            // First dismiss this dialog
-            dismiss()
-            
-            // Then open the state values dialog for the new state
-            val stateValuesDialog = AutomationStateValuesDialog.newInstance(stateName)
-            stateValuesDialog.show(parentFragmentManager, "AutomationStateValuesDialog")
+            try {
+                dismiss()
+                val stateValuesDialog = AutomationStateValuesDialog.newInstance(stateName)
+                stateValuesDialog.show(parentFragmentManager, "AutomationStateValuesDialog")
+            } catch (e: RuntimeException) {
+                aapsLogger.error("Failed opening state values dialog", e)
+                ToastUtils.showToastInUiThread(context, e.message ?: rh.gs(app.aaps.core.ui.R.string.error))
+            }
         }
 
         binding.cancelButton.setOnClickListener {
