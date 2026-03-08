@@ -11,6 +11,7 @@ class AutomationStateService  @Inject constructor(
     private val sp: SP
 ) : AutomationStateInterface {
 
+    // This service is used from UI and automation execution paths, so map access must be synchronized.
     private val lock = Any()
     private var automationStates: MutableMap<String, String> = HashMap()
     private var stateValues: MutableMap<String, List<String>> = HashMap()
@@ -18,6 +19,7 @@ class AutomationStateService  @Inject constructor(
     private val stateValuesKey = "automation_state_values"
 
     init {
+        // Load persisted current values and normalize aggressively to recover from malformed legacy entries.
         val string = sp.getString(spKey, "{}")
         try {
             val decoded: Map<String, String> = Json.decodeFromString(string)
@@ -54,6 +56,7 @@ class AutomationStateService  @Inject constructor(
         }
 
         synchronized(lock) {
+            // Keep only active values that are still valid according to the current state definitions.
             automationStates = automationStates
                 .filter { (name, value) -> stateValues[name]?.contains(value) == true }
                 .toMap(HashMap())
@@ -61,7 +64,11 @@ class AutomationStateService  @Inject constructor(
         }
     }
 
-   override fun inState(stateName: String, state: String): Boolean {
+    /**
+     * Returns true when [stateName] currently points to [state].
+     * Invalid/blank input is treated as non-matching instead of throwing.
+     */
+    override fun inState(stateName: String, state: String): Boolean {
         val trimmedName = normalizeNameOrNull(stateName) ?: return false
         val trimmedState = normalizeValueOrNull(state) ?: return false
         synchronized(lock) {
@@ -69,6 +76,10 @@ class AutomationStateService  @Inject constructor(
         }
     }
 
+    /**
+     * Sets the active value for a defined state.
+     * Fails when state/value are blank, state does not exist, or value is not allowed.
+     */
     override fun setState(stateName: String, state: String) {
         val trimmedName = validateName(stateName)
         val trimmedState = validateValue(state)
@@ -82,6 +93,9 @@ class AutomationStateService  @Inject constructor(
         }
     }
 
+    /**
+     * Returns the active value for [stateName], or null when unset/unknown.
+     */
     override fun getStateOrNull(stateName: String): String? {
         val trimmedName = normalizeNameOrNull(stateName) ?: return null
         synchronized(lock) {
@@ -89,22 +103,35 @@ class AutomationStateService  @Inject constructor(
         }
     }
 
+    /**
+     * Backward-compatible accessor that returns empty string when no active value exists.
+     */
     override fun getState(stateName: String): String {
         return getStateOrNull(stateName) ?: ""
     }
 
+    /**
+     * Returns all state names that have value definitions, sorted for stable UI ordering.
+     */
     override fun getDefinedStates(): List<String> {
         synchronized(lock) {
             return stateValues.keys.sorted()
         }
     }
 
+    /**
+     * Returns active state/value pairs only (states without active value are omitted).
+     */
     override fun getAllStates(): List<Pair<String, String>> {
         synchronized(lock) {
             return automationStates.toList()
         }
     }
 
+    /**
+     * Clears only active values while keeping state definitions.
+     * Primarily used by tests and reset-style maintenance flows.
+     */
     fun clearStates() {
         synchronized(lock) {
             automationStates.clear()
@@ -112,14 +139,21 @@ class AutomationStateService  @Inject constructor(
         }
     }
 
-   override fun getStateValues(stateName: String): List<String> {
+    /**
+     * Returns allowed values for [stateName], or empty list when unknown.
+     */
+    override fun getStateValues(stateName: String): List<String> {
         val trimmedName = normalizeNameOrNull(stateName) ?: return emptyList()
         synchronized(lock) {
             return stateValues[trimmedName].orEmpty()
         }
     }
 
-   override fun setStateValues(stateName: String, values: List<String>) {
+    /**
+     * Replaces allowed values for [stateName] after trimming and de-duplicating input.
+     * If the current active value becomes invalid, it is removed.
+     */
+    override fun setStateValues(stateName: String, values: List<String>) {
         val trimmedName = validateName(stateName)
         val trimmedValues = normalizeValues(values)
         require(trimmedValues.isNotEmpty()) { "State values must contain at least one non-empty value" }
@@ -135,14 +169,20 @@ class AutomationStateService  @Inject constructor(
         }
     }
 
-   override fun hasStateValues(stateName: String): Boolean {
+    /**
+     * Returns true when [stateName] has at least one configured allowed value.
+     */
+    override fun hasStateValues(stateName: String): Boolean {
         val trimmedName = normalizeNameOrNull(stateName) ?: return false
         synchronized(lock) {
             return stateValues.containsKey(trimmedName)
         }
     }
 
-   override fun deleteState(stateName: String) {
+    /**
+     * Deletes a state definition and its active value, if present.
+     */
+    override fun deleteState(stateName: String) {
         val trimmedName = validateName(stateName)
         synchronized(lock) {
             automationStates.remove(trimmedName)
@@ -152,6 +192,7 @@ class AutomationStateService  @Inject constructor(
     }
 
     private fun persistLocked() {
+        // Persist both maps in one editor transaction to avoid temporary split-brain state on disk.
         sp.edit {
             putString(spKey, Json.encodeToString(automationStates))
             putString(stateValuesKey, Json.encodeToString(stateValues))
@@ -175,6 +216,7 @@ class AutomationStateService  @Inject constructor(
     }
 
     private fun normalizeValues(values: List<String>): List<String> {
+        // Preserve insertion order while removing blanks/duplicates.
         val deduped = LinkedHashSet<String>()
         values.forEach { value ->
             normalizeValueOrNull(value)?.let { deduped.add(it) }

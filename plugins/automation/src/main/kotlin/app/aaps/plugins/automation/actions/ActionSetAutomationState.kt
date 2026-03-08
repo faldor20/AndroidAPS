@@ -31,6 +31,7 @@ class ActionSetAutomationState(injector: HasAndroidInjector) : Action(injector) 
         }
         stateValueDropdown = InputDropdownStateMenu(rh)
 
+        // Use defined states (not only currently active ones) so new/inactive states are selectable.
         val stateNames = automationState.getDefinedStates()
 
         if (stateNames.isNotEmpty()) {
@@ -59,6 +60,9 @@ class ActionSetAutomationState(injector: HasAndroidInjector) : Action(injector) 
 
     @DrawableRes override fun icon(): Int = app.aaps.core.ui.R.drawable.ic_reorder_gray_24dp
 
+    /**
+     * Validates that both dropdown selections are populated and still allowed by current definitions.
+     */
     override fun isValid(): Boolean {
         return try {
             val stateName = stateNameDropdown.value.trim()
@@ -73,10 +77,14 @@ class ActionSetAutomationState(injector: HasAndroidInjector) : Action(injector) 
         }
     }
 
+    /**
+     * Applies the selected automation state and returns success/failure through [callback].
+     */
     override fun doAction(callback: Callback) {
         try {
             val stateName = stateNameDropdown.value.trim()
             val stateValue = stateValueDropdown.value.trim()
+            // Re-validate at execution time in case definitions changed after the rule was created.
             if (!automationState.hasStateValues(stateName)) {
                 callback.result(
                     pumpEnactResultProvider.get()

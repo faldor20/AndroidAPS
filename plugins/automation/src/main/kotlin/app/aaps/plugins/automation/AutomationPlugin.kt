@@ -306,6 +306,10 @@ class AutomationPlugin @Inject constructor(
         storeToSP() // save last run time
     }
 
+    /**
+     * Processes one automation event and executes valid actions in sequence.
+     * Individual action failures are isolated so remaining actions can still run.
+     */
     override fun processEvent(someEvent: AutomationEvent) {
         val event = someEvent as AutomationEventObject
         if (event.canRun() && event.preconditionCanRun()) {
@@ -314,6 +318,8 @@ class AutomationPlugin @Inject constructor(
                 action.title = event.title
                 if (action.isValid()) {
                     try {
+                        // Guard individual action execution so one plugin/runtime exception
+                        // does not abort processing of remaining actions for this event.
                         action.doAction(object : Callback() {
                             override fun run() {
                                 val sb = StringBuilder()

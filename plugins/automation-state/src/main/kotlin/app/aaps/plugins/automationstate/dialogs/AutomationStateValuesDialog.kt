@@ -113,6 +113,8 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
             }
 
             try {
+                // Save cleaned definitions first, then only set an active value when needed
+                // (new state or currently undefined active value).
                 val cleanedValues = normalizedValues.toList()
                 automationStateService.setStateValues(stateName, cleanedValues)
 

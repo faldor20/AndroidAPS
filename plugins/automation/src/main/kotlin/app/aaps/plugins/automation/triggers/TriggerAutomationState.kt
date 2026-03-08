@@ -66,6 +66,9 @@ class TriggerAutomationState(injector: HasAndroidInjector) : Trigger(injector) {
         }
     }
 
+    /**
+     * Trigger condition: selected state currently equals selected value.
+     */
     override fun shouldRun(): Boolean {
         val shouldExecute = automationStateService.inState(stateNameDropdown.value, stateValueDropdown.value)
 

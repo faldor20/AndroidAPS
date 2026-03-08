@@ -36,6 +36,7 @@ import javax.inject.Inject
 
 class AutomationStateFragment : DaggerFragment(), MenuProvider {
 
+    // Flattened UI model for adapter diffing so rendering only updates rows that actually changed.
     private data class StateUiModel(
         val stateName: String,
         val currentState: String,
@@ -118,6 +119,7 @@ class AutomationStateFragment : DaggerFragment(), MenuProvider {
         }
 
         fun updateStates() {
+            // Build a full snapshot from service state and diff it against the currently displayed list.
             val newStates = automationStateService.getDefinedStates().map { stateName ->
                 StateUiModel(
                     stateName = stateName,
@@ -159,7 +161,8 @@ class AutomationStateFragment : DaggerFragment(), MenuProvider {
             val statesContainer = holder.binding.statesContainer as LinearLayout
             statesContainer.removeAllViews()
             statesContainer.orientation = LinearLayout.VERTICAL
-            
+
+            // Use fixed-size chunks instead of runtime measurement; this avoids expensive per-bind width probes.
             item.values.chunked(VALUES_PER_ROW).forEachIndexed { rowIndex, rowValues ->
                 val rowLayout = LinearLayout(holder.itemView.context).apply {
                     orientation = LinearLayout.HORIZONTAL
