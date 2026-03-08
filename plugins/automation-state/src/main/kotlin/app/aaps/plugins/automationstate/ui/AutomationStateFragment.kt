@@ -36,6 +36,12 @@ import javax.inject.Inject
 
 class AutomationStateFragment : DaggerFragment(), MenuProvider {
 
+    private data class StateUiModel(
+        val stateName: String,
+        val currentState: String,
+        val values: List<String>
+    )
+
     @Inject lateinit var aapsLogger: AAPSLogger
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var automationStateService: AutomationStateService
@@ -104,12 +110,6 @@ class AutomationStateFragment : DaggerFragment(), MenuProvider {
     }
 
     inner class StateAdapter : RecyclerView.Adapter<StateAdapter.StateViewHolder>() {
-
-        private data class StateUiModel(
-            val stateName: String,
-            val currentState: String,
-            val values: List<String>
-        )
 
         private val states = mutableListOf<StateUiModel>()
 
