@@ -180,6 +180,10 @@
     <string name="set_state_state_val">"State value: "</string>
     <string name="check_state_name">Check automation state</string>
     <string name="check_state_description">Check automation state %1$s=%2$s</string>
+    <string name="automation_state_not_defined">Automation state "%1$s" is not defined</string>
+    <string name="automation_state_value_not_allowed">Automation state "%1$s" does not allow value "%2$s"</string>
+    <string name="automation_state_set_failed">Failed to set automation state</string>
+    <string name="automation_action_runtime_exception">Action failed with runtime exception</string>
     <string name="no_automation_states">No automation states defined yet. Use the \"Set automation state\" action in your automation rules to create states.</string>
 
     <!-- Automation States Plugin -->

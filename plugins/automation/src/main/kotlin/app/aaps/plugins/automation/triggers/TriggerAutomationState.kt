@@ -44,16 +44,7 @@ class TriggerAutomationState(injector: HasAndroidInjector) : Trigger(injector) {
         }
         stateValueDropdown = InputDropdownStateMenu(rh)
 
-        // Populate state names dropdown with all available states
-        val allStates = automationStateService.getAllStates()
-        val stateNames = allStates.map { it.first }.distinct().toMutableList()
-
-        // Add all states that have defined values but may not have a current value
-        automationStateService.getAllStates().forEach { (stateName, _) ->
-            if (!stateNames.contains(stateName)) {
-                stateNames.add(stateName)
-            }
-        }
+        val stateNames = automationStateService.getDefinedStates()
 
         if (stateNames.isNotEmpty()) {
             stateNameDropdown.values = stateNames
@@ -75,6 +66,9 @@ class TriggerAutomationState(injector: HasAndroidInjector) : Trigger(injector) {
         }
     }
 
+    /**
+     * Trigger condition: selected state currently equals selected value.
+     */
     override fun shouldRun(): Boolean {
         val shouldExecute = automationStateService.inState(stateNameDropdown.value, stateValueDropdown.value)
 

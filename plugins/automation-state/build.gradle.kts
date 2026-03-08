@@ -19,8 +19,6 @@ dependencies {
     implementation(project(":core:utils"))
     implementation(project(":core:ui"))
     implementation(project(":core:validators"))
-    implementation(project(":plugins:automation"))
-
     testImplementation(project(":shared:tests"))
     testImplementation(project(":shared:impl"))
     testImplementation(project(":implementation"))

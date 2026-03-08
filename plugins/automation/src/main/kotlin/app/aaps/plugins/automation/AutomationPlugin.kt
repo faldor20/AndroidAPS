@@ -306,6 +306,10 @@ class AutomationPlugin @Inject constructor(
         storeToSP() // save last run time
     }
 
+    /**
+     * Processes one automation event and executes valid actions in sequence.
+     * Individual action failures are isolated so remaining actions can still run.
+     */
     override fun processEvent(someEvent: AutomationEvent) {
         val event = someEvent as AutomationEventObject
         if (event.canRun() && event.preconditionCanRun()) {
@@ -313,23 +317,45 @@ class AutomationPlugin @Inject constructor(
             for (action in actions) {
                 action.title = event.title
                 if (action.isValid()) {
-                    action.doAction(object : Callback() {
-                        override fun run() {
-                            val sb = StringBuilder()
-                                .append(dateUtil.timeString(dateUtil.now()))
-                                .append(" ")
-                                .append(if (result.success) "☺" else "▼")
-                                .append(" <b>")
-                                .append(event.title)
-                                .append(":</b> ")
-                                .append(action.shortDescription())
-                                .append(": ")
-                                .append(result.comment)
-                            executionLog.add(sb.toString())
-                            aapsLogger.debug(LTag.AUTOMATION, "Executed: $sb")
-                            rxBus.send(EventAutomationUpdateGui())
+                    try {
+                        // Guard individual action execution so one plugin/runtime exception
+                        // does not abort processing of remaining actions for this event.
+                        action.doAction(object : Callback() {
+                            override fun run() {
+                                val sb = StringBuilder()
+                                    .append(dateUtil.timeString(dateUtil.now()))
+                                    .append(" ")
+                                    .append(if (result.success) "☺" else "▼")
+                                    .append(" <b>")
+                                    .append(event.title)
+                                    .append(":</b> ")
+                                    .append(action.shortDescription())
+                                    .append(": ")
+                                    .append(result.comment)
+                                executionLog.add(sb.toString())
+                                aapsLogger.debug(LTag.AUTOMATION, "Executed: $sb")
+                                rxBus.send(EventAutomationUpdateGui())
+                            }
+                        })
+                    } catch (e: RuntimeException) {
+                        val description = try {
+                            action.shortDescription()
+                        } catch (_: Exception) {
+                            action.javaClass.simpleName
                         }
-                    })
+                        val failure = StringBuilder()
+                            .append(dateUtil.timeString(dateUtil.now()))
+                            .append(" ▼ <b>")
+                            .append(event.title)
+                            .append(":</b> ")
+                            .append(description)
+                            .append(": ")
+                            .append(e.message ?: rh.gs(R.string.automation_action_runtime_exception))
+                            .toString()
+                        executionLog.add(failure)
+                        aapsLogger.error(LTag.AUTOMATION, "Automation action failed: ${action.javaClass.simpleName}", e)
+                        rxBus.send(EventAutomationUpdateGui())
+                    }
                     SystemClock.sleep(3000)
                 } else {
                     executionLog.add("Invalid action: ${action.shortDescription()}")

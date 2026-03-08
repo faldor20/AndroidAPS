@@ -17,7 +17,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:padding="16dp"
-        android:text="@string/no_automation_states"
+        android:text="@string/automation_state_no_states"
         android:textSize="16sp"
         android:visibility="gone" />
 

@@ -3,6 +3,7 @@ package app.aaps.plugins.automation.actions
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import app.aaps.core.interfaces.automation.AutomationStateInterface
+import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.queue.Callback
 import app.aaps.core.utils.JsonHelper
@@ -30,16 +31,8 @@ class ActionSetAutomationState(injector: HasAndroidInjector) : Action(injector) 
         }
         stateValueDropdown = InputDropdownStateMenu(rh)
 
-        // Populate state names dropdown with all available states
-        val allStates = automationState.getAllStates()
-        val stateNames = allStates.map { it.first }.distinct().toMutableList()
-
-        // Add all states that have defined values but may not have a current value
-        automationState.getAllStates().forEach { (stateName, _) ->
-            if (!stateNames.contains(stateName)) {
-                stateNames.add(stateName)
-            }
-        }
+        // Use defined states (not only currently active ones) so new/inactive states are selectable.
+        val stateNames = automationState.getDefinedStates()
 
         if (stateNames.isNotEmpty()) {
             stateNameDropdown.values = stateNames
@@ -67,11 +60,58 @@ class ActionSetAutomationState(injector: HasAndroidInjector) : Action(injector) 
 
     @DrawableRes override fun icon(): Int = app.aaps.core.ui.R.drawable.ic_reorder_gray_24dp
 
-    override fun isValid(): Boolean = stateNameDropdown.value.isNotEmpty() && stateValueDropdown.value.isNotEmpty()
+    /**
+     * Validates that both dropdown selections are populated and still allowed by current definitions.
+     */
+    override fun isValid(): Boolean {
+        return try {
+            val stateName = stateNameDropdown.value.trim()
+            val stateValue = stateValueDropdown.value.trim()
+            stateName.isNotEmpty() &&
+                stateValue.isNotEmpty() &&
+                automationState.hasStateValues(stateName) &&
+                automationState.getStateValues(stateName).contains(stateValue)
+        } catch (e: RuntimeException) {
+            aapsLogger.error(LTag.AUTOMATION, "Invalid automation state action configuration", e)
+            false
+        }
+    }
 
+    /**
+     * Applies the selected automation state and returns success/failure through [callback].
+     */
     override fun doAction(callback: Callback) {
-        automationState.setState(stateNameDropdown.value, stateValueDropdown.value)
-        callback.result(pumpEnactResultProvider.get().success(true).comment(app.aaps.core.ui.R.string.ok)).run()
+        try {
+            val stateName = stateNameDropdown.value.trim()
+            val stateValue = stateValueDropdown.value.trim()
+            // Re-validate at execution time in case definitions changed after the rule was created.
+            if (!automationState.hasStateValues(stateName)) {
+                callback.result(
+                    pumpEnactResultProvider.get()
+                        .success(false)
+                        .comment(rh.gs(R.string.automation_state_not_defined, stateName))
+                ).run()
+                return
+            }
+            if (!automationState.getStateValues(stateName).contains(stateValue)) {
+                callback.result(
+                    pumpEnactResultProvider.get()
+                        .success(false)
+                        .comment(rh.gs(R.string.automation_state_value_not_allowed, stateName, stateValue))
+                ).run()
+                return
+            }
+
+            automationState.setState(stateName, stateValue)
+            callback.result(pumpEnactResultProvider.get().success(true).comment(app.aaps.core.ui.R.string.ok)).run()
+        } catch (e: RuntimeException) {
+            aapsLogger.error(LTag.AUTOMATION, "Failed to set automation state", e)
+            callback.result(
+                pumpEnactResultProvider.get()
+                    .success(false)
+                    .comment(e.message ?: rh.gs(R.string.automation_state_set_failed))
+            ).run()
+        }
     }
 
     override fun toJSON(): String {

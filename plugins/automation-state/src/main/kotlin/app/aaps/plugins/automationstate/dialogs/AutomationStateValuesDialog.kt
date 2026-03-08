@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import app.aaps.core.interfaces.logging.AAPSLogger
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import app.aaps.core.interfaces.resources.ResourceHelper
@@ -20,6 +21,7 @@ import javax.inject.Inject
 
 class AutomationStateValuesDialog : DaggerDialogFragment() {
 
+    @Inject lateinit var aapsLogger: AAPSLogger
     @Inject lateinit var automationStateService: AutomationStateService
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var rxBus: RxBus
@@ -47,13 +49,18 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        if (stateName.isBlank()) {
+            aapsLogger.error("AutomationStateValuesDialog requires non-empty stateName")
+            ToastUtils.showToastInUiThread(context, rh.gs(R.string.automation_state_missing_name_value))
+            dismiss()
+            return
+        }
+
         // Check if this is a new state
         isNewState = !automationStateService.hasStateValues(stateName)
 
         // Get the current state value
-        val states = automationStateService.getAllStates()
-        val stateEntry = states.find { it.first == stateName }
-        currentStateValue = stateEntry?.second ?: ""
+        currentStateValue = automationStateService.getStateOrNull(stateName).orEmpty()
 
         // Set dialog title to include state name
         binding.dialogTitle.text = "${rh.gs(R.string.automation_state_values)}: $stateName"
@@ -74,13 +81,17 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
 
         binding.addButton.setOnClickListener {
             val newValue = binding.newStateValue.text.toString().trim()
-            if (newValue.isNotEmpty()) {
-                stateValues.add(newValue)
-                adapter.notifyItemInserted(stateValues.size - 1)
-                binding.newStateValue.text.clear()
-            } else {
+            if (newValue.isEmpty()) {
                 ToastUtils.showToastInUiThread(context, rh.gs(R.string.enter_state_value))
+                return@setOnClickListener
             }
+            if (stateValues.any { it.equals(newValue, ignoreCase = false) }) {
+                ToastUtils.showToastInUiThread(context, rh.gs(R.string.automation_state_value_already_exists, newValue))
+                return@setOnClickListener
+            }
+            stateValues.add(newValue)
+            adapter.notifyItemInserted(stateValues.size - 1)
+            binding.newStateValue.text.clear()
         }
 
         binding.okButton.setOnClickListener {
@@ -89,20 +100,34 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
                 return@setOnClickListener
             }
             
-            // Save the state values
-            automationStateService.setStateValues(stateName, stateValues)
-            
-            // If this is a new state or no current value, set the first value as current
-            if (isNewState || currentStateValue.isEmpty()) {
-                try {
-                    automationStateService.setState(stateName, stateValues.first())
-                } catch (e: Exception) {
-                    ToastUtils.showToastInUiThread(context, e.message ?: "Error setting state")
+            val normalizedValues = LinkedHashSet<String>()
+            stateValues.forEach { value ->
+                val trimmed = value.trim()
+                if (trimmed.isNotEmpty()) {
+                    normalizedValues.add(trimmed)
                 }
             }
-            
-            rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
-            dismiss()
+            if (normalizedValues.isEmpty()) {
+                ToastUtils.showToastInUiThread(context, rh.gs(R.string.enter_state_value))
+                return@setOnClickListener
+            }
+
+            try {
+                // Save cleaned definitions first, then only set an active value when needed
+                // (new state or currently undefined active value).
+                val cleanedValues = normalizedValues.toList()
+                automationStateService.setStateValues(stateName, cleanedValues)
+
+                if (isNewState || currentStateValue.isEmpty()) {
+                    automationStateService.setState(stateName, cleanedValues.first())
+                }
+
+                rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
+                dismiss()
+            } catch (e: RuntimeException) {
+                aapsLogger.error("Failed saving automation state values", e)
+                ToastUtils.showToastInUiThread(context, e.message ?: rh.gs(app.aaps.core.ui.R.string.error))
+            }
         }
 
         binding.cancelButton.setOnClickListener {
@@ -113,10 +138,14 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
             context?.let { ctx ->
                 OKDialog.showConfirmation(ctx, rh.gs(R.string.delete_state), rh.gs(R.string.delete_state_confirmation), 
                     Runnable {
-                        // Delete the state and its values
-                        automationStateService.deleteState(stateName)
-                        rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
-                        dismiss()
+                        try {
+                            automationStateService.deleteState(stateName)
+                            rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
+                            dismiss()
+                        } catch (e: RuntimeException) {
+                            aapsLogger.error("Failed deleting automation state", e)
+                            ToastUtils.showToastInUiThread(context, e.message ?: rh.gs(app.aaps.core.ui.R.string.error))
+                        }
                     })
             }
         }
@@ -157,10 +186,11 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
                 try {
                     automationStateService.setState(stateName, stateValue)
                     currentStateValue = stateValue
-                    notifyDataSetChanged()
+                    notifyItemRangeChanged(0, itemCount)
                     rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
-                } catch (e: Exception) {
-                    ToastUtils.showToastInUiThread(context, e.message ?: "Error setting state")
+                } catch (e: RuntimeException) {
+                    aapsLogger.error("Failed setting automation state value", e)
+                    ToastUtils.showToastInUiThread(context, e.message ?: rh.gs(app.aaps.core.ui.R.string.error))
                 }
             }
             

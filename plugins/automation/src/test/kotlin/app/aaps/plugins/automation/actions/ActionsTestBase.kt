@@ -1,6 +1,7 @@
 package app.aaps.plugins.automation.actions
 
 import app.aaps.core.data.model.GlucoseUnit
+import app.aaps.core.interfaces.automation.AutomationStateInterface
 import app.aaps.core.interfaces.aps.Loop
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.profile.ProfileSource
@@ -20,6 +21,7 @@ ActionsTestBase : TestBaseWithProfile() {
     @Mock lateinit var smsCommunicator: SmsCommunicator
     @Mock lateinit var loop: Loop
     @Mock lateinit var persistenceLayer: PersistenceLayer
+    @Mock lateinit var automationState: AutomationStateInterface
 
     init {
         addInjector {
@@ -56,6 +58,10 @@ ActionsTestBase : TestBaseWithProfile() {
             if (it is ActionSMBChange) {
                 it.dateUtil = dateUtil
                 it.preferences = preferences
+            }
+            if (it is ActionSetAutomationState) {
+                it.activePlugin = activePlugin
+                it.automationState = automationState
             }
             if (it is ActionCarePortalEvent) {
                 it.persistenceLayer = persistenceLayer

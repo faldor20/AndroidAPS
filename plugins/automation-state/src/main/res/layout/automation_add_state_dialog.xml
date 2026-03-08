@@ -22,7 +22,7 @@
             android:id="@+id/stateNameInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/set_state_state_name"
+            android:hint="@string/automation_state_set_state_name_hint"
             android:inputType="text" />
 
     </com.google.android.material.textfield.TextInputLayout>

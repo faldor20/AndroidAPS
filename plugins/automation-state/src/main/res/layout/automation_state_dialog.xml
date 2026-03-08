@@ -51,7 +51,7 @@
             android:id="@+id/addButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/add_short"
+            android:text="@string/automation_state_add_short"
             android:layout_marginStart="8dp"/>
     </LinearLayout>
 
