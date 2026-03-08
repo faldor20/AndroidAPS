@@ -8,17 +8,20 @@ import javax.inject.Singleton
 
 @Singleton
 class AutomationStateService  @Inject constructor(
-    private val sp: SP
+    private val sp: SP,
+    private val aapsLogger: app.aaps.core.interfaces.logging.AAPSLogger,
+    private val rxBus: app.aaps.core.interfaces.rx.bus.RxBus
 ) : AutomationStateInterface {
 
     // This service is used from UI and automation execution paths, so map access must be synchronized.
     private val lock = Any()
     private var automationStates: MutableMap<String, String> = HashMap()
     private var stateValues: MutableMap<String, List<String>> = HashMap()
-    private val spKey = "automation_state_service"
-    private val stateValuesKey = "automation_state_values"
+    private val spKey = app.aaps.plugins.automationstate.keys.AutomationStateStringKey.AutomationStateService.key
+    private val stateValuesKey = app.aaps.plugins.automationstate.keys.AutomationStateStringKey.AutomationStateValues.key
 
     init {
+        var corruptedDataDetected = false
         // Load persisted current values and normalize aggressively to recover from malformed legacy entries.
         val string = sp.getString(spKey, "{}")
         try {
@@ -33,6 +36,8 @@ class AutomationStateService  @Inject constructor(
                 }
                 .toMap(HashMap())
         } catch (e: Exception) {
+            corruptedDataDetected = true
+            aapsLogger.error("Error parsing AutomationStateService JSON data", e)
             automationStates = HashMap()
         }
 
@@ -52,6 +57,8 @@ class AutomationStateService  @Inject constructor(
                 }
                 .toMap(HashMap())
         } catch (e: Exception) {
+            corruptedDataDetected = true
+            aapsLogger.error("Error parsing AutomationStateValues JSON data", e)
             stateValues = HashMap()
         }
 
@@ -60,7 +67,9 @@ class AutomationStateService  @Inject constructor(
             automationStates = automationStates
                 .filter { (name, value) -> stateValues[name]?.contains(value) == true }
                 .toMap(HashMap())
-            persistLocked()
+            if (!corruptedDataDetected) {
+                persistLocked()
+            }
         }
     }
 
@@ -91,6 +100,7 @@ class AutomationStateService  @Inject constructor(
             automationStates[trimmedName] = trimmedState
             persistLocked()
         }
+        rxBus.send(app.aaps.core.interfaces.rx.events.EventPreferenceChange("automation_state_values"))
     }
 
     /**
@@ -137,6 +147,7 @@ class AutomationStateService  @Inject constructor(
             automationStates.clear()
             persistLocked()
         }
+        rxBus.send(app.aaps.core.interfaces.rx.events.EventPreferenceChange("automation_state_values"))
     }
 
     /**
@@ -167,6 +178,7 @@ class AutomationStateService  @Inject constructor(
             stateValues[trimmedName] = trimmedValues
             persistLocked()
         }
+        rxBus.send(app.aaps.core.interfaces.rx.events.EventPreferenceChange("automation_state_values"))
     }
 
     /**
@@ -189,6 +201,7 @@ class AutomationStateService  @Inject constructor(
             stateValues.remove(trimmedName)
             persistLocked()
         }
+        rxBus.send(app.aaps.core.interfaces.rx.events.EventPreferenceChange("automation_state_values"))
     }
 
     private fun persistLocked() {

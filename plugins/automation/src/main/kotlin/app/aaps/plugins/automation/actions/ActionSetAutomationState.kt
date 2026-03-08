@@ -131,9 +131,13 @@ class ActionSetAutomationState(injector: HasAndroidInjector) : Action(injector) 
 
         stateNameDropdown.value = stateName
 
-        // Make sure we have values loaded for this state
+        // Always preserve the parsed selection so it is not lost on save
+        stateValueDropdown.value = stateValue
+
+        // If definitions exist, populate the dropdown options too
         if (automationState.hasStateValues(stateName)) {
             updateStateValueDropdown(stateName)
+            // Ensure the value remains set after adapter update
             stateValueDropdown.value = stateValue
         }
 

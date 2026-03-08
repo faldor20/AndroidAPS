@@ -113,16 +113,16 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
             }
 
             try {
-                // Save cleaned definitions first, then only set an active value when needed
-                // (new state or currently undefined active value).
                 val cleanedValues = normalizedValues.toList()
                 automationStateService.setStateValues(stateName, cleanedValues)
 
-                if (isNewState || currentStateValue.isEmpty()) {
+                // Query the service for the actual current state. If the user deleted the active
+                // value, the service will have removed it, so we need to set a new one.
+                val updatedCurrentState = automationStateService.getStateOrNull(stateName)
+                if (updatedCurrentState == null && cleanedValues.isNotEmpty()) {
                     automationStateService.setState(stateName, cleanedValues.first())
                 }
 
-                rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
                 dismiss()
             } catch (e: RuntimeException) {
                 aapsLogger.error("Failed saving automation state values", e)
@@ -140,7 +140,6 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
                     Runnable {
                         try {
                             automationStateService.deleteState(stateName)
-                            rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
                             dismiss()
                         } catch (e: RuntimeException) {
                             aapsLogger.error("Failed deleting automation state", e)
@@ -187,7 +186,6 @@ class AutomationStateValuesDialog : DaggerDialogFragment() {
                     automationStateService.setState(stateName, stateValue)
                     currentStateValue = stateValue
                     notifyItemRangeChanged(0, itemCount)
-                    rxBus.send(EventPreferenceChange(rh.gs(R.string.automation_state_values)))
                 } catch (e: RuntimeException) {
                     aapsLogger.error("Failed setting automation state value", e)
                     ToastUtils.showToastInUiThread(context, e.message ?: rh.gs(app.aaps.core.ui.R.string.error))
