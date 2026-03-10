@@ -24,6 +24,21 @@
         </encoder>
     </appender>
 
+    <appender name="analysisFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${EXT_FILES_DIR}/analysis.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${EXT_FILES_DIR}/analysis._%d{yyyy-MM-dd_HH}.log.zip</fileNamePattern>
+            <maxHistory>720</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ANALYSIS" level="INFO" additivity="false">
+        <appender-ref ref="analysisFile" />
+    </logger>
+
     <!-- Write INFO (and higher-level) messages to the log file -->
     <root level="DEBUG">
         <appender-ref ref="file" />

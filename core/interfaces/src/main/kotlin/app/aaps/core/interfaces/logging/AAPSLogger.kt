@@ -30,4 +30,6 @@ interface AAPSLogger {
     fun info(className: String, methodName: String, lineNumber: Int, tag: LTag, message: String)
     fun warn(className: String, methodName: String, lineNumber: Int, tag: LTag, message: String)
     fun error(className: String, methodName: String, lineNumber: Int, tag: LTag, message: String)
+
+    fun analysis(message: String)
 }

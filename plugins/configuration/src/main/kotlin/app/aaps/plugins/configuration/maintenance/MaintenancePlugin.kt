@@ -86,6 +86,9 @@ class MaintenancePlugin @Inject constructor(
         val files = logDir.listFiles { _: File?, name: String ->
             (name.startsWith("AndroidAPS") && name.endsWith(".zip"))
         }
+        val analysisFiles = logDir.listFiles { _: File?, name: String ->
+            (name.startsWith("analysis") && name.endsWith(".zip"))
+        }
         val autotuneFiles = logDir.listFiles { _: File?, name: String ->
             (name.startsWith("autotune") && name.endsWith(".zip"))
         }
@@ -100,13 +103,24 @@ class MaintenancePlugin @Inject constructor(
                 }
             }
         }
-        if (files == null || files.isEmpty()) return
-        Arrays.sort(files) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
-        var delFiles = listOf(*files)
-        if (keepIndex < delFiles.size) {
-            delFiles = delFiles.subList(keepIndex, delFiles.size)
-            for (file in delFiles) {
-                file.delete()
+        if (files != null && files.isNotEmpty()) {
+            Arrays.sort(files) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
+            var delFiles = listOf(*files)
+            if (keepIndex < delFiles.size) {
+                delFiles = delFiles.subList(keepIndex, delFiles.size)
+                for (file in delFiles) {
+                    file.delete()
+                }
+            }
+        }
+        if (analysisFiles != null && analysisFiles.isNotEmpty()) {
+            Arrays.sort(analysisFiles) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
+            var delAnalysisFiles = listOf(*analysisFiles)
+            if (keepIndex < delAnalysisFiles.size) {
+                delAnalysisFiles = delAnalysisFiles.subList(keepIndex, delAnalysisFiles.size)
+                for (file in delAnalysisFiles) {
+                    file.delete()
+                }
             }
         }
         val exportDir = fileListProvider.ensureTempDirExists()
@@ -127,16 +141,24 @@ class MaintenancePlugin @Inject constructor(
     fun getLogFiles(amount: Int): List<File> {
         aapsLogger.debug("getting $amount logs from directory ${loggerUtils.logDirectory}")
         val logDir = File(loggerUtils.logDirectory)
-        val files = logDir.listFiles { _: File?, name: String ->
+        val androidApsFiles = logDir.listFiles { _: File?, name: String ->
             (name.startsWith("AndroidAPS")
                 && (name.endsWith(".log")
                 || name.endsWith(".zip") && !name.endsWith(loggerUtils.suffix)))
         } ?: emptyArray()
-        Arrays.sort(files) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
-        val result = listOf(*files)
+        val analysisFiles = logDir.listFiles { _: File?, name: String ->
+            (name.startsWith("analysis") && (name.endsWith(".log") || name.endsWith(".zip")))
+        } ?: emptyArray()
+        Arrays.sort(androidApsFiles) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
+        Arrays.sort(analysisFiles) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
+        val result = (androidApsFiles.take(amount) + analysisFiles.take(amount)).sortedByDescending { it.name }
         var toIndex = amount
         if (toIndex > result.size) {
             toIndex = result.size
+        }
+        if (result.size <= amount) {
+            aapsLogger.debug("returning ${result.size} log files")
+            return result
         }
         aapsLogger.debug("returning sublist 0 to $toIndex")
         return result.subList(0, toIndex)

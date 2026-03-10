@@ -40,6 +40,15 @@ and carb ratios.
 * In the AAPS Client allow to show the script debug from the main app
   to understand what happend in the last loop and the reasons
 
+## Analysis log export
+* AndroidAPS now supports a dedicated `ANALYSIS` log option for structured loop analysis.
+* Enable `ANALYSIS` in the log settings screen when you want machine-readable loop exports.
+* When enabled, AndroidAPS writes JSON Lines records to `analysis.log` alongside the normal app log.
+* The file contains one `aps.determine_basal` record per APS run and structured `treatment.bolus` records for bolus events.
+* Log export and cleanup now include `analysis.log` and its rolled zip archives.
+* The schema is versioned with `schemaVersion: 1` so downstream tools can reject incompatible formats.
+* Intended consumers should read `analysis.log` directly instead of scraping human-readable logcat text.
+
 ## Why was autoISF not added to the current AndroidAPS "master" version 3.4.0.0?
 * With AndroidAPS 3.3, autoISF was introduced as a plugin, but can only be enabled in dev mode
 * The version available here makes the latest 3.2.0 version of autoISF available even without 
