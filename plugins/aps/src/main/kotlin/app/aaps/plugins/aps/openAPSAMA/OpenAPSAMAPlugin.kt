@@ -25,7 +25,9 @@ import app.aaps.core.interfaces.db.ProcessedTbrEbData
 import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.buildAnalysisDetermineBasalRecord
 import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.toJson
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.plugin.PluginDescription
@@ -278,6 +280,21 @@ class OpenAPSAMAPlugin @Inject constructor(
             determineBasalResult.mealData = mealData
             lastAPSResult = determineBasalResult
             lastAPSRun = now
+            aapsLogger.analysis(
+                buildAnalysisDetermineBasalRecord(
+                    algorithm = algorithm,
+                    timestamp = now,
+                    glucoseStatus = glucoseStatus,
+                    currentTemp = currentTemp,
+                    iobData = iobArray,
+                    profile = oapsProfile,
+                    autosensData = autosensResult,
+                    mealData = mealData,
+                    microBolusAllowed = false,
+                    flatBGsDetected = false,
+                    result = it
+                ).toJson()
+            )
             aapsLogger.debug(LTag.APS, "Result: $it")
             rxBus.send(EventAPSCalculationFinished())
         }

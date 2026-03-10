@@ -9,6 +9,10 @@ import app.aaps.core.interfaces.logging.LTag
 
 class AAPSLoggerTest : AAPSLogger {
 
+    override fun analysis(message: String) {
+        println(message)
+    }
+
     override fun debug(message: String) {
         println("DEBUG: $message")
     }

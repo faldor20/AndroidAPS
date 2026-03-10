@@ -11,6 +11,12 @@ import org.slf4j.LoggerFactory
 
 class AAPSLoggerProduction(val l: L) : AAPSLogger {
 
+    override fun analysis(message: String) {
+        if (l.findByName(LTag.ANALYSIS.tag).enabled) {
+            LoggerFactory.getLogger(LTag.ANALYSIS.tag).info(message)
+        }
+    }
+
     override fun debug(message: String) {
         LoggerFactory.getLogger(LTag.CORE.tag).debug(stackLogMarker() + message)
     }

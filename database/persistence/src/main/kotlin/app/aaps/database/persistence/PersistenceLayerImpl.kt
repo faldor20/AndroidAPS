@@ -29,7 +29,9 @@ import app.aaps.core.interfaces.aps.APSResult
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.toAnalysisBolusRecord
 import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.toJson
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.database.AppRepository
 import app.aaps.database.ValueWrapper
@@ -144,6 +146,10 @@ class PersistenceLayerImpl @Inject constructor(
             }
     }
 
+    private fun logAnalysisBoluses(records: List<BS>) {
+        records.forEach { aapsLogger.analysis(it.toAnalysisBolusRecord().toJson()) }
+    }
+
     override fun clearDatabases() = repository.clearDatabases()
     override fun clearApsResults() = repository.clearApsResults()
     override fun cleanupDatabase(keepDays: Long, deleteTrackedChanges: Boolean): String = repository.cleanupDatabase(keepDays, deleteTrackedChanges)
@@ -208,6 +214,7 @@ class PersistenceLayerImpl @Inject constructor(
                     transactionResult.updated.add(it.fromDb())
                 }
                 log(ueValues)
+                logAnalysisBoluses(transactionResult.inserted + transactionResult.updated)
                 transactionResult
             }
 
@@ -220,6 +227,7 @@ class PersistenceLayerImpl @Inject constructor(
                     aapsLogger.debug(LTag.DATABASE, "Inserted Bolus $it")
                     transactionResult.inserted.add(it.fromDb())
                 }
+                logAnalysisBoluses(transactionResult.inserted)
                 transactionResult
             }
 
@@ -251,6 +259,7 @@ class PersistenceLayerImpl @Inject constructor(
                     aapsLogger.debug(LTag.DATABASE, "Updated Bolus $it")
                     transactionResult.updated.add(it.fromDb())
                 }
+                logAnalysisBoluses(transactionResult.inserted + transactionResult.updated)
                 transactionResult
             }
 
@@ -263,6 +272,7 @@ class PersistenceLayerImpl @Inject constructor(
                     aapsLogger.debug(LTag.DATABASE, "Updated Bolus $it")
                     transactionResult.updated.add(it.fromDb())
                 }
+                logAnalysisBoluses(transactionResult.updated)
                 transactionResult
             }
 
